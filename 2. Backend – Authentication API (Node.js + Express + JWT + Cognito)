@@ -1,0 +1,19 @@
+auth.js
+
+const express = require("express");
+const jwt = require("jsonwebtoken");
+const router = express.Router();
+
+// Dummy login (replace with AWS Cognito)
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  // Dummy check
+  if (email === "admin@example.com" && password === "Admin123!") {
+    const token = jwt.sign({ email, role: "admin" }, "SECRET", { expiresIn: "1h" });
+    return res.json({ token });
+  }
+  res.status(401).json({ error: "Invalid credentials" });
+});
+
+module.exports = router;
