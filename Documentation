@@ -1,0 +1,111 @@
+AWS CV Processing Portal – Solution Design Documentation
+
+Overview
+A recruitment firm seeks a scalable, secure, and intelligent cloud-based portal to manage CV uploads, extract key data, and allow recruiters to search and match candidates effectively. This project delivers a solution using AWS native services, a relational database, and a secure login system with modern frontend and backend implementations.
+
+High-Level Architecture
+
+Architecture Layers:
+Layer	Components/Services
+User Interface	React Web App, Responsive UI
+Application	API Gateway, AWS Lambda, AWS Fargate (optional)
+Processing	Amazon Textract, Step Functions
+Data	Amazon RDS (PostgreSQL), S3, DynamoDB
+Security	AWS Cognito, IAM, WAF, KMS
+Monitoring	CloudWatch, CloudTrail, X-Ray
+
+AWS Services Justification
+Component	AWS Service	Reason
+CV Upload Storage	S3	Durable, cost-effective, triggers Lambda for processing
+Text Extraction	Textract	OCR of structured/unstructured documents
+Workflow Orchestration	Step Functions	Manage flow of CV processing
+Auth & MFA	Cognito	Built-in user pool, MFA, integration with React
+API Handling	API Gateway	Exposes secure endpoints, rate limiting
+Serverless Processing	Lambda	Cost-efficient, scalable CV parsing and routing
+Database	RDS (PostgreSQL)	Structured data storage with relationships and indexing
+Logging & Alerts	CloudWatch	Real-time system metrics and alerting
+
+Data Flow Design
+CV Upload Process
+1. Recruiter uploads file → S3 Bucket
+2. S3 triggers Lambda → Textract processes document
+3. Extracted data passed to Lambda → Inserted into RDS
+Search Query
+1. Recruiter types keywords → Frontend → API Gateway
+2. Lambda fetches filtered results from RDS → Returns JSON
+Authentication Flow
+1. User logs in with email/password → Cognito
+2. MFA challenge issued → Token granted if passed
+3. JWT token used in subsequent requests
+Batch Processing
+* Scheduled Lambda via EventBridge cleans old CVs, aggregates analytics.
+
+Database Design
+ Entity Relationship Diagram (ERD)
+Key entities:
+* Users: Login credentials and roles
+* Candidates: Extracted CV info
+* CV_Files: File metadata
+* Skills: Individual skills
+* Jobs: Job postings
+* Audit_Logs: Tracks security and activity
+Schema Highlights (PostgreSQL)
+* Fully normalized to 3NF
+* Primary/foreign keys on all relations
+* Indexes on candidate name, skill, and job_id for fast search
+Refer to schema.sql in the repo.
+
+Login Page Implementation
+Frontend (React)
+* Password strength meter
+* Validation + accessibility
+* Loading states, error handling
+* Forgot password, Remember Me
+Backend (Express/Cognito)
+* Rate limiting + account lockout
+* JWT-based authentication
+* Password policy enforcement
+* Secure session storage
+
+Security Architecture
+* IAM Roles with least privilege
+* Cognito MFA + password policies
+* HTTPS only via CloudFront/ALB
+* Audit Logs stored in RDS
+* WAF & Shield to block attacks
+* KMS for encryption at rest
+* S3 bucket policies and object versioning
+
+Scalability Strategy
+Area	Approach
+User Load	API Gateway + Lambda auto-scales
+Data Volume	RDS partitioning + S3 lifecycle rules
+CV Parsing Load	Step Functions scales Lambda executions
+Cost Optimization	Use of Spot instances, CloudWatch scheduled start/stop for dev resources
+
+Deployment Instructions
+Tools Required:
+* AWS CLI configured
+* Node.js + PostgreSQL setup
+* React for frontend
+
+Deployment Steps:
+1. Deploy S3 bucket and configure event notifications
+2. Deploy Lambda and Step Functions via CloudFormation or Serverless Framework
+3. Set up RDS instance and run schema.sql
+4. Deploy frontend (Amplify or S3 static website)
+5. Set Cognito User Pool and Identity Pool for auth
+6. Configure IAM policies and WAF rules
+7. Enable CloudWatch dashboards and logs
+
+Success Criteria (MVP & Excellent)
+Criteria	Minimum	Excellent
+Architecture	Diagram with rationale	Detailed trade-offs, failure handling, cost plan
+Database	Normalized schema	Indexed, performant, scalable
+Login	Functional with validation	Full MFA, account lockout, JWT-based auth
+Security	Basic IAM + SSL	Full RBAC, logs, CSRF protection, WAF
+Documentation	Overview + steps	Design decisions, metrics, diagrams, testing
+
+
+
+
