@@ -1,0 +1,27 @@
+cv_processor.py (Lambda Function)
+
+import boto3
+import json
+
+s3 = boto3.client('s3')
+textract = boto3.client('textract')
+
+def lambda_handler(event, context):
+    for record in event['Records']:
+        bucket = record['s3']['bucket']['name']
+        document = record['s3']['object']['key']
+
+        response = textract.analyze_document(
+            Document={'S3Object': {'Bucket': bucket, 'Name': document}},
+            FeatureTypes=["TABLES", "FORMS"]
+        )
+
+        extracted_text = []
+        for block in response['Blocks']:
+            if block['BlockType'] == 'LINE':
+                extracted_text.append(block['Text'])
+
+        # Store to DynamoDB or RDS
+        print("Extracted Text: ", extracted_text)
+    
+    return {"statusCode": 200, "body": json.dumps("Processed successfully")}
