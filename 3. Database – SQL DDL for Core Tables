@@ -1,0 +1,47 @@
+schema.sql
+
+CREATE TABLE Users (
+  user_id SERIAL PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  role VARCHAR(50) CHECK (role IN ('Admin', 'Recruiter')) NOT NULL
+);
+
+CREATE TABLE Candidates (
+  candidate_id SERIAL PRIMARY KEY,
+  full_name VARCHAR(255),
+  location VARCHAR(255),
+  years_experience INT
+);
+
+CREATE TABLE CV_Files (
+  file_id SERIAL PRIMARY KEY,
+  candidate_id INT REFERENCES Candidates(candidate_id),
+  file_url TEXT NOT NULL,
+  upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE Skills (
+  skill_id SERIAL PRIMARY KEY,
+  name VARCHAR(100) UNIQUE NOT NULL
+);
+
+CREATE TABLE Candidate_Skills (
+  candidate_id INT REFERENCES Candidates(candidate_id),
+  skill_id INT REFERENCES Skills(skill_id),
+  PRIMARY KEY (candidate_id, skill_id)
+);
+
+CREATE TABLE Jobs (
+  job_id SERIAL PRIMARY KEY,
+  title VARCHAR(255),
+  required_skills TEXT,
+  location VARCHAR(255)
+);
+
+CREATE TABLE Audit_Logs (
+  log_id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES Users(user_id),
+  action TEXT NOT NULL,
+  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
